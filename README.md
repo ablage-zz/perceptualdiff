@@ -50,10 +50,10 @@ Since the PNG library, I use, does not support resampling, I needed to remove th
 So, there is no ```--resample```. Please resample the images through other means before using this diff-tool.
 
 I also added a couple additional features and some were exposed to the command-line tool:
-* ```---threshold-image p``` makes it possible to skip some of the comparison, reducing the time spent analysing the
+* ```--threshold-image p``` makes it possible to skip some of the comparison, reducing the time spent analysing the
 images as node is a LOT slower than C is. This feature will also skip the creation of output images if this threshold is not reached; it simply stops caring if the difference is below the threshold.
-* ```---threshold-type p``` changes the threshold by considering absolute pixels or percentage of total pixels. The values are ```pixel``` and ```percent``` respectively.
-* ```---pyramid-levels p``` specifies the detail of the comparison - the higher the number is, the higher the comparison resolution but also the longer it will take. ```2``` is the lowest number possible. The original perceptualdiff tool used internally 8 as default. Again, node is just too slow.
+* ```--threshold-type p``` changes the threshold by considering absolute pixels or percentage of total pixels. The values are ```pixel``` and ```percent``` respectively.
+* ```--pyramid-levels p``` specifies the detail of the comparison - the higher the number is, the higher the comparison resolution but also the longer it will take. ```2``` is the lowest number possible. The original perceptualdiff tool used internally 8 as default. Again, node is just too slow.
 
 
 ##Class usage:
