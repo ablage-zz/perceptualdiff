@@ -1,0 +1,30 @@
+{
+  "name": "perceptualdiff",
+  "version": "1.3.0",
+  "description": "A port of the perceptualdiff image comparison (pdiff.sourceforge.net), and adding some additional features",
+  "license": "GPL-2.0",
+  "main": "perceptualdiff.js",
+  "homepage": "https://github.com/marcelerz/node-perceptualdiff",
+  "bugs": "https://github.com/marcelerz/node-perceptualdiff/issues",
+  "author": {
+    "name": "Marcel Erz",
+    "email": "marcel.erz@gmail.com",
+    "url": "http://github.com/marcelerz"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/marcelerz/node-perceptualdiff"
+  },
+  "keywords": [
+    "perceptualdiff",
+    "visual-diff",
+    "diff",
+    "testing"
+  ],
+  "engines": {
+      "node": "0.8.x"
+  },
+  "dependencies": {
+    "png-image": "^0.8.2"
+  }
+}
