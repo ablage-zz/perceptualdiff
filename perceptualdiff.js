@@ -120,8 +120,8 @@ PerceptualDiff.prototype = {
 
             if (this.verbose) this.log("Scaling to " + min_width + " x " + min_height);
 
-            this.imageA.clip(min_width, min_height);
-            this.imageB.clip(min_width, min_height);
+            this.imageA.clip(0, 0, min_width, min_height);
+            this.imageB.clip(0, 0, min_width, min_height);
         }
     },
 
@@ -351,6 +351,6 @@ PerceptualDiff.prototype = {
     }
 };
 
-PerceptualDiff.version = "1.3.0";
+PerceptualDiff.version = "1.3.1";
 
 module.exports = PerceptualDiff;
