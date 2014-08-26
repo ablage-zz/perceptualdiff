@@ -75,10 +75,10 @@ function PerceptualDiff(options) {
     this.outputMaskBlue = options.outputMaskBlue || 0;
     this.outputMaskAlpha = options.outputMaskAlpha || 180;
 
-    this.outputBackgroundRed = options.outputBackgroundRed || 0;
-    this.outputBackgroundGreen = options.outputBackgroundGreen || 0;
-    this.outputBackgroundBlue = options.outputBackgroundBlue || 0;
-    this.outputBackgroundAlpha = options.outputBackgroundAlpha || 0;
+    this.outputBackgroundRed = options.outputBackgroundRed;
+    this.outputBackgroundGreen = options.outputBackgroundGreen;
+    this.outputBackgroundBlue = options.outputBackgroundBlue;
+    this.outputBackgroundAlpha = options.outputBackgroundAlpha;
 
     this.copyImageAToOutput = options.copyImageAToOutput || false;
     this.copyImageBToOutput = options.copyImageBToOutput || false;
@@ -378,6 +378,6 @@ PerceptualDiff.prototype = {
     }
 };
 
-PerceptualDiff.version = "1.3.8";
+PerceptualDiff.version = "1.3.9";
 
 module.exports = PerceptualDiff;
