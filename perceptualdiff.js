@@ -111,6 +111,10 @@ PerceptualDiff.prototype = {
         return (result !== PerceptualDiff.RESULT_FAILED_DIFFERENT) && (result !== PerceptualDiff.RESULT_FAILED_DIMENSIONS);
     },
 
+    hasOutput: function (result) {
+        return (result === PerceptualDiff.RESULT_FAILED_DIFFERENT) && (result === PerceptualDiff.RESULT_SIMILAR);
+    },
+
     _scale: function () {
 
         var min_width, min_height;
@@ -359,6 +363,6 @@ PerceptualDiff.prototype = {
     }
 };
 
-PerceptualDiff.version = "1.3.2";
+PerceptualDiff.version = "1.3.3";
 
 module.exports = PerceptualDiff;
