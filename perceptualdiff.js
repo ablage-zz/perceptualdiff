@@ -81,8 +81,14 @@ function PerceptualDiff(options) {
     this.outputBackgroundAlpha = options.outputBackgroundAlpha || 0;
 }
 
-PerceptualDiff.THRESHOLD_PIXEL = 0;
-PerceptualDiff.THRESHOLD_PERCENT = 1;
+PerceptualDiff.THRESHOLD_PIXEL = 'pixel';
+PerceptualDiff.THRESHOLD_PERCENT = 'percent';
+
+PerceptualDiff.RESULT_FAILED_DIMENSIONS = 0;
+PerceptualDiff.RESULT_FAILED_DIFFERENT = 1;
+PerceptualDiff.RESULT_IDENTICAL = 5;
+PerceptualDiff.RESULT_INDISTINGUISHABLE = 6;
+PerceptualDiff.RESULT_SIMILAR = 7;
 
 PerceptualDiff.prototype = {
 
@@ -94,13 +100,15 @@ PerceptualDiff.prototype = {
 
                 if (self.scale) self._scale();
 
-                if (self.imageOutputPath) {
-                    self.imageOutput = PNGImage.createImage(self.imageA.getWidth(), self.imageA.getHeight());
-                }
+                self.imageOutput = PNGImage.createImage(self.imageA.getWidth(), self.imageA.getHeight());
 
                 self._yee_compare(fn);
             });
         });
+    },
+
+    isPassed: function (result) {
+        return (result !== PerceptualDiff.RESULT_FAILED_DIFFERENT) && (result !== PerceptualDiff.RESULT_FAILED_DIMENSIONS);
     },
 
     _scale: function () {
@@ -183,7 +191,7 @@ PerceptualDiff.prototype = {
 
         if ((this.imageA.getWidth() != this.imageB.getWidth()) || (this.imageA.getHeight() != this.imageB.getHeight())) {
             this.log("Image dimensions do not match");
-            fn(false);
+            fn(PerceptualDiff.RESULT_FAILED_DIMENSIONS);
             return;
         }
 
@@ -194,12 +202,12 @@ PerceptualDiff.prototype = {
         diffPixel = this._quickIdentical(dim);
         if (diffPixel == 0) {
             this.log("Images are binary identical");
-            fn(true);
+            fn(PerceptualDiff.RESULT_IDENTICAL);
             return;
         }
         if (!this.isAboveImageThreshold(diffPixel, dim)) {
-            this.log("Images are very similar");
-            fn(true);
+            this.log("Images are perceptually indistinguishable");
+            fn(PerceptualDiff.RESULT_INDISTINGUISHABLE);
             return;
         }
 
@@ -318,10 +326,10 @@ PerceptualDiff.prototype = {
 
             if (!pass) {
                 pixels_failed++;
-                if (this.imageOutput) this.imageOutput.setAtIndex(index << 2, this.outputMaskRed, this.outputMaskGreen, this.outputMaskBlue, this.outputMaskAlpha);
+                this.imageOutput.setAtIndex(index << 2, this.outputMaskRed, this.outputMaskGreen, this.outputMaskBlue, this.outputMaskAlpha);
             }
             else {
-                if (this.imageOutput) this.imageOutput.setAtIndex(index << 2, this.outputBackgroundRed, this.outputBackgroundGreen, this.outputBackgroundBlue, this.outputBackgroundAlpha);
+                this.imageOutput.setAtIndex(index << 2, this.outputBackgroundRed, this.outputBackgroundGreen, this.outputBackgroundBlue, this.outputBackgroundAlpha);
             }
         }
 
@@ -331,16 +339,16 @@ PerceptualDiff.prototype = {
                 self.log("Images are visibly different");
                 self.log(pixels_failed + " pixels are different");
                 if (self.sumErrors) self.log(error_sum + " error sum");
-                fn(false);
+                fn(PerceptualDiff.RESULT_FAILED_DIFFERENT);
             } else {
-                self.log("Images are perceptually indistinguishable");
+                self.log("Images are similar");
                 self.log(pixels_failed + " pixels are different");
-                fn(true);
+                fn(PerceptualDiff.RESULT_SIMILAR);
             }
         };
 
         // Always output image difference if requested.
-        if (this.imageOutput) {
+        if (this.imageOutputPath) {
             this.imageOutput.writeImage(this.imageOutputPath, function () {
                 self.log("Wrote difference image to " + self.imageOutputPath);
                 completion();
@@ -351,6 +359,6 @@ PerceptualDiff.prototype = {
     }
 };
 
-PerceptualDiff.version = "1.3.1";
+PerceptualDiff.version = "1.3.2";
 
 module.exports = PerceptualDiff;

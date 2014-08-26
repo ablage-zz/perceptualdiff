@@ -33,7 +33,8 @@ try {
     }
 
     console.time('Time');
-    diff.run(function (passed) {
+    diff.run(function (result) {
+        var passed = diff.isPassed(result);
         console.timeEnd('Time');
 
         if (passed) {
