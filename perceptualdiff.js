@@ -95,6 +95,11 @@ PerceptualDiff.prototype = {
     run: function (fn) {
         var self = this;
 
+        PNGImage.log = function (text) {
+            self.log('ERROR: ' + text);
+            throw new Error('ERROR: ' + text);
+        };
+
         this.imageA = PNGImage.readImage(this.imageAPath, function () {
             self.imageB = PNGImage.readImage(self.imageBPath, function () {
 
@@ -363,6 +368,6 @@ PerceptualDiff.prototype = {
     }
 };
 
-PerceptualDiff.version = "1.3.5";
+PerceptualDiff.version = "1.3.6";
 
 module.exports = PerceptualDiff;
