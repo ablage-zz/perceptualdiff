@@ -79,6 +79,9 @@ function PerceptualDiff(options) {
     this.outputBackgroundGreen = options.outputBackgroundGreen || 0;
     this.outputBackgroundBlue = options.outputBackgroundBlue || 0;
     this.outputBackgroundAlpha = options.outputBackgroundAlpha || 0;
+
+    this.copyImageAToOutput = options.copyImageAToOutput || false;
+    this.copyImageBToOutput = options.copyImageBToOutput || false;
 }
 
 PerceptualDiff.THRESHOLD_PIXEL = 'pixel';
@@ -106,6 +109,13 @@ PerceptualDiff.prototype = {
                 if (self.scale) self._scale();
 
                 self.imageOutput = PNGImage.createImage(self.imageA.getWidth(), self.imageA.getHeight());
+
+                if (self.copyImageAToOutput) {
+                    self.imageA.getImage().bitblt(self.imageOutput.getImage(), 0, 0, self.imageA.getWidth(), self.imageA.getHeight(), 0, 0);
+                }
+                else if (self.copyImageBToOutput) {
+                    self.imageB.getImage().bitblt(self.imageOutput.getImage(), 0, 0, self.imageB.getWidth(), self.imageB.getHeight(), 0, 0);
+                }
 
                 self._yee_compare(fn);
             });
@@ -368,6 +378,6 @@ PerceptualDiff.prototype = {
     }
 };
 
-PerceptualDiff.version = "1.3.7";
+PerceptualDiff.version = "1.3.8";
 
 module.exports = PerceptualDiff;
