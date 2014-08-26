@@ -171,7 +171,7 @@ PerceptualDiff.prototype = {
 
 
     log: function (text) {
-        console.log(text);
+        // Nothing here; Overwrite this to add some functionality
     },
 
 
@@ -363,6 +363,6 @@ PerceptualDiff.prototype = {
     }
 };
 
-PerceptualDiff.version = "1.3.3";
+PerceptualDiff.version = "1.3.4";
 
 module.exports = PerceptualDiff;

@@ -28,6 +28,11 @@ try {
 
     var diff = new PerceptualDiff(options);
 
+    // Setup console logger
+    diff.log = function (text) {
+        console.log(text);
+    };
+
     if (diff.verbose) {
         console.log(diff.getInfo().join("\n"));
     }
