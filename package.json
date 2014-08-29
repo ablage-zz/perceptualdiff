@@ -1,6 +1,6 @@
 {
   "name": "perceptualdiff",
-  "version": "1.3.12",
+  "version": "1.3.13",
   "description": "A port of the perceptualdiff image comparison (pdiff.sourceforge.net), and adding some additional features",
   "license": "GPL-2.0",
   "main": "perceptualdiff.js",
@@ -25,6 +25,6 @@
       "node": "0.8.x"
   },
   "dependencies": {
-    "png-image": "0.8.9"
+    "png-image": "0.8.10"
   }
 }

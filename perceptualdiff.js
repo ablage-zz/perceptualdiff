@@ -73,7 +73,7 @@ function PerceptualDiff (options) {
     this.outputMaskRed = options.outputMaskRed || 255;
     this.outputMaskGreen = options.outputMaskGreen || 0;
     this.outputMaskBlue = options.outputMaskBlue || 0;
-    this.outputMaskAlpha = options.outputMaskAlpha || 180;
+    this.outputMaskAlpha = options.outputMaskAlpha || 255;
 
     this.outputBackgroundRed = options.outputBackgroundRed;
     this.outputBackgroundGreen = options.outputBackgroundGreen;
@@ -82,6 +82,8 @@ function PerceptualDiff (options) {
 
     this.copyImageAToOutput = options.copyImageAToOutput || false;
     this.copyImageBToOutput = options.copyImageBToOutput || false;
+
+    this.outputMaskOpacity = 0.7;
 
     this.quick = options.quick || false;
 }
@@ -193,7 +195,9 @@ PerceptualDiff.prototype = {
 
 
     _quickIdentical: function (dim) {
-        var diff = 0, idx, i;
+        var diff = 0, idx, i,
+            outputImageHasImage = this.copyImageAToOutput || this.copyImageBToOutput,
+            outputOpacity = outputImageHasImage ? this.outputMaskOpacity : undefined;
 
         for (i = 0; i < dim; i++) {
             idx = i << 2;
@@ -203,7 +207,7 @@ PerceptualDiff.prototype = {
                 diff++;
 
                 if (this.quick) {
-                    this.imageOutput.setAtIndex(idx, this.outputMaskRed, this.outputMaskGreen, this.outputMaskBlue, this.outputMaskAlpha);
+                    this.imageOutput.setAtIndex(idx, this.outputMaskRed, this.outputMaskGreen, this.outputMaskBlue, this.outputMaskAlpha, outputOpacity);
                 } else if (this.isAboveImageThreshold(diff, dim)) {
                     break;
                 }
@@ -217,7 +221,9 @@ PerceptualDiff.prototype = {
     },
 
     _yee_compare: function (fn) {
-        var i, ii, resultA, resultB, r, g, b, w, h, dim, diffPixel, a_lum, b_lum, ab, da, db, la, lb;
+        var i, ii, resultA, resultB, r, g, b, w, h, dim, diffPixel, a_lum, b_lum, ab, da, db, la, lb,
+            outputImageHasImage = this.copyImageAToOutput || this.copyImageBToOutput,
+            outputOpacity = outputImageHasImage ? this.outputMaskOpacity : undefined;;
 
         if ((this.imageA.getWidth() != this.imageB.getWidth()) || (this.imageA.getHeight() != this.imageB.getHeight())) {
             this.log("Image dimensions do not match");
@@ -357,7 +363,7 @@ PerceptualDiff.prototype = {
 
                 if (!pass) {
                     diffPixel++;
-                    this.imageOutput.setAtIndex(index << 2, this.outputMaskRed, this.outputMaskGreen, this.outputMaskBlue, this.outputMaskAlpha);
+                    this.imageOutput.setAtIndex(index << 2, this.outputMaskRed, this.outputMaskGreen, this.outputMaskBlue, this.outputMaskAlpha, outputOpacity);
 
                 } else {
                     this.imageOutput.setAtIndex(index << 2, this.outputBackgroundRed, this.outputBackgroundGreen, this.outputBackgroundBlue, this.outputBackgroundAlpha);
@@ -391,6 +397,6 @@ PerceptualDiff.prototype = {
     }
 };
 
-PerceptualDiff.version = "1.3.12";
+PerceptualDiff.version = "1.3.13";
 
 module.exports = PerceptualDiff;
