@@ -23,7 +23,7 @@ var assert = require('assert'),
   PNGImage = require('png-image'),
   metrics = require('./lib/metric.js');
 
-function PerceptualDiff(options) {
+function PerceptualDiff (options) {
 
     this.imageA = null;
     this.imageAPath = options.imageAPath;
@@ -82,6 +82,8 @@ function PerceptualDiff(options) {
 
     this.copyImageAToOutput = options.copyImageAToOutput || false;
     this.copyImageBToOutput = options.copyImageBToOutput || false;
+
+    this.quick = options.quick || false;
 }
 
 PerceptualDiff.THRESHOLD_PIXEL = 'pixel';
@@ -112,8 +114,8 @@ PerceptualDiff.prototype = {
 
                 if (self.copyImageAToOutput) {
                     self.imageA.getImage().bitblt(self.imageOutput.getImage(), 0, 0, self.imageA.getWidth(), self.imageA.getHeight(), 0, 0);
-                }
-                else if (self.copyImageBToOutput) {
+
+                } else if (self.copyImageBToOutput) {
                     self.imageB.getImage().bitblt(self.imageOutput.getImage(), 0, 0, self.imageB.getWidth(), self.imageB.getHeight(), 0, 0);
                 }
 
@@ -172,7 +174,7 @@ PerceptualDiff.prototype = {
 
     getInfo: function () {
         var thresholdType = (this.thresholdType === PerceptualDiff.THRESHOLD_PIXEL ? 'px' : '%'),
-          result = [];
+            result = [];
 
         result.push("Field of view: " + this.fieldOfView + " degrees");
         result.push("Threshold: " + this.threshold + thresholdType);
@@ -195,10 +197,19 @@ PerceptualDiff.prototype = {
 
         for (i = 0; i < dim; i++) {
             idx = i << 2;
+
             if (this.imageA.getAtIndex(idx) !== this.imageB.getAtIndex(idx)) {
-                if (this.isAboveImageThreshold(++diff, dim)) {
+
+                diff++;
+
+                if (this.quick) {
+                    this.imageOutput.setAtIndex(idx, this.outputMaskRed, this.outputMaskGreen, this.outputMaskBlue, this.outputMaskAlpha);
+                } else if (this.isAboveImageThreshold(diff, dim)) {
                     break;
                 }
+
+            } else if (this.quick) {
+                this.imageOutput.setAtIndex(idx, this.outputBackgroundRed, this.outputBackgroundGreen, this.outputBackgroundBlue, this.outputBackgroundAlpha);
             }
         }
 
@@ -230,138 +241,140 @@ PerceptualDiff.prototype = {
             return;
         }
 
-        // Assuming colorspaces are in Adobe RGB (1998) convert to XYZ.
-        a_lum = [];
-        b_lum = [];
+        if (!this.quick) {
+            // Assuming colorspaces are in Adobe RGB (1998) convert to XYZ.
+            a_lum = [];
+            b_lum = [];
 
-        ab = [];
+            ab = [];
 
-        if (this.verbose) this.log("Converting RGB to XYZ");
+            if (this.verbose) this.log("Converting RGB to XYZ");
 
-        //#pragma omp parallel for
-        for (i = 0; i < dim; i++) {
-            ii = i << 2;
+            //#pragma omp parallel for
+            for (i = 0; i < dim; i++) {
+                ii = i << 2;
 
-            r = Math.pow(this.imageA.getRed(ii) / 255, this.gamma);
-            g = Math.pow(this.imageA.getGreen(ii) / 255, this.gamma);
-            b = Math.pow(this.imageA.getBlue(ii) / 255, this.gamma);
-            resultA = metrics.adobe_rgb_to_lab(r, g, b);
+                r = Math.pow(this.imageA.getRed(ii) / 255, this.gamma);
+                g = Math.pow(this.imageA.getGreen(ii) / 255, this.gamma);
+                b = Math.pow(this.imageA.getBlue(ii) / 255, this.gamma);
+                resultA = metrics.adobe_rgb_to_lab(r, g, b);
 
-            r = Math.pow(this.imageB.getRed(ii) / 255, this.gamma);
-            g = Math.pow(this.imageB.getGreen(ii) / 255, this.gamma);
-            b = Math.pow(this.imageB.getBlue(ii) / 255, this.gamma);
-            resultB = metrics.adobe_rgb_to_lab(r, g, b);
+                r = Math.pow(this.imageB.getRed(ii) / 255, this.gamma);
+                g = Math.pow(this.imageB.getGreen(ii) / 255, this.gamma);
+                b = Math.pow(this.imageB.getBlue(ii) / 255, this.gamma);
+                resultB = metrics.adobe_rgb_to_lab(r, g, b);
 
-            a_lum[i] = resultA.y * this.luminance;
-            b_lum[i] = resultB.y * this.luminance;
+                a_lum[i] = resultA.y * this.luminance;
+                b_lum[i] = resultB.y * this.luminance;
 
-            da = resultA.A - resultB.A;
-            db = resultA.B - resultB.B;
-            da = da * da;
-            db = db * db;
-            ab[i] = da + db;
-        }
-
-        if (this.verbose) this.log("Constructing Laplacian Pyramids");
-
-        la = new LPyramid(a_lum, w, h, this.pyramidLevels);
-        lb = new LPyramid(b_lum, w, h, this.pyramidLevels);
-
-        var num_one_degree_pixels = 2 * Math.tan(this.fieldOfView * 0.5 * Math.PI / 180) * 180 / Math.PI;
-        var pixels_per_degree = w / num_one_degree_pixels;
-
-        if (this.verbose) this.log("Performing test");
-
-        var adaptation_level = metrics.adaptation(this.pyramidLevels, num_one_degree_pixels);
-
-        var cpd = [];
-        cpd[0] = 0.5 * pixels_per_degree;
-        for (i = 1; i < this.pyramidLevels; i++) {
-            cpd[i] = 0.5 * cpd[i - 1];
-        }
-        var csf_max = metrics.csf(3.248, 100);
-
-        var F_freq = [];
-        for (i = 0; i < this.pyramidLevels - 2; i++) {
-            F_freq[i] = csf_max / metrics.csf(cpd[i], 100);
-        }
-
-        var pixels_failed = 0;
-        var error_sum = 0;
-
-        var contrast = [];
-        var F_mask = [];
-
-        //#pragma omp parallel for reduction(+ : pixels_failed) reduction(+ : error_sum)
-        var index;
-        for (index = 0; index < dim; index++) {
-            var sumContrast = 0;
-            for (i = 0; i < this.pyramidLevels - 2; i++) {
-                var n1 = Math.abs(la.getValue(index, i) - la.getValue(index, i + 1));
-                var n2 = Math.abs(lb.getValue(index, i) - lb.getValue(index, i + 1));
-                var numerator = (n1 > n2) ? n1 : n2;
-                var d1 = Math.abs(la.getValue(index, i + 2));
-                var d2 = Math.abs(lb.getValue(index, i + 2));
-                var denominator = (d1 > d2) ? d1 : d2;
-                if (denominator < 1e-5) denominator = 1e-5;
-                contrast[i] = numerator / denominator;
-                sumContrast += contrast[i];
-            }
-            if (sumContrast < 1e-5) sumContrast = 1e-5;
-
-            var adapt = la.getValue(index, adaptation_level) + lb.getValue(index, adaptation_level) * 0.5;
-            if (adapt < 1e-5) adapt = 1e-5;
-            for (i = 0; i < this.pyramidLevels - 2; i++) {
-                F_mask[i] = metrics.mask(contrast[i] * metrics.csf(cpd[i], adapt));
+                da = resultA.A - resultB.A;
+                db = resultA.B - resultB.B;
+                da = da * da;
+                db = db * db;
+                ab[i] = da + db;
             }
 
-            var factor = 0;
-            for (i = 0; i < this.pyramidLevels - 2; i++) {
-                factor += contrast[i] * F_freq[i] * F_mask[i] / sumContrast;
+            if (this.verbose) this.log("Constructing Laplacian Pyramids");
+
+            la = new LPyramid(a_lum, w, h, this.pyramidLevels);
+            lb = new LPyramid(b_lum, w, h, this.pyramidLevels);
+
+            var num_one_degree_pixels = 2 * Math.tan(this.fieldOfView * 0.5 * Math.PI / 180) * 180 / Math.PI;
+            var pixels_per_degree = w / num_one_degree_pixels;
+
+            if (this.verbose) this.log("Performing test");
+
+            var adaptation_level = metrics.adaptation(this.pyramidLevels, num_one_degree_pixels);
+
+            var cpd = [];
+            cpd[0] = 0.5 * pixels_per_degree;
+            for (i = 1; i < this.pyramidLevels; i++) {
+                cpd[i] = 0.5 * cpd[i - 1];
             }
-            if (factor < 1) factor = 1;
-            if (factor > 10) factor = 10;
+            var csf_max = metrics.csf(3.248, 100);
 
-            var delta = Math.abs(la.getValue(index, 0) - lb.getValue(index, 0));
-            error_sum += delta;
+            var F_freq = [];
+            for (i = 0; i < this.pyramidLevels - 2; i++) {
+                F_freq[i] = csf_max / metrics.csf(cpd[i], 100);
+            }
 
-            var pass = true;
+            diffPixel = 0;
+            var error_sum = 0;
 
-            // pure luminance test
-            if (delta > factor * metrics.tvi(adapt)) pass = false;
+            var contrast = [];
+            var F_mask = [];
 
-            if (pass && !this.luminanceOnly) {
-                // CIE delta E test with modifications
-                var color_scale = this.colorFactor;
-                // ramp down the color test in scotopic regions
-                if (adapt < 10) {
-                    // Don't do color test at all.
-                    color_scale = 0;
+            //#pragma omp parallel for reduction(+ : diffPixel) reduction(+ : error_sum)
+            var index;
+            for (index = 0; index < dim; index++) {
+                var sumContrast = 0;
+                for (i = 0; i < this.pyramidLevels - 2; i++) {
+                    var n1 = Math.abs(la.getValue(index, i) - la.getValue(index, i + 1));
+                    var n2 = Math.abs(lb.getValue(index, i) - lb.getValue(index, i + 1));
+                    var numerator = (n1 > n2) ? n1 : n2;
+                    var d1 = Math.abs(la.getValue(index, i + 2));
+                    var d2 = Math.abs(lb.getValue(index, i + 2));
+                    var denominator = (d1 > d2) ? d1 : d2;
+                    if (denominator < 1e-5) denominator = 1e-5;
+                    contrast[i] = numerator / denominator;
+                    sumContrast += contrast[i];
                 }
-                var delta_e = ab[index] * color_scale;
-                error_sum += delta_e;
-                if (delta_e > factor) pass = false;
-            }
+                if (sumContrast < 1e-5) sumContrast = 1e-5;
 
-            if (!pass) {
-                pixels_failed++;
-                this.imageOutput.setAtIndex(index << 2, this.outputMaskRed, this.outputMaskGreen, this.outputMaskBlue, this.outputMaskAlpha);
-            }
-            else {
-                this.imageOutput.setAtIndex(index << 2, this.outputBackgroundRed, this.outputBackgroundGreen, this.outputBackgroundBlue, this.outputBackgroundAlpha);
+                var adapt = la.getValue(index, adaptation_level) + lb.getValue(index, adaptation_level) * 0.5;
+                if (adapt < 1e-5) adapt = 1e-5;
+                for (i = 0; i < this.pyramidLevels - 2; i++) {
+                    F_mask[i] = metrics.mask(contrast[i] * metrics.csf(cpd[i], adapt));
+                }
+
+                var factor = 0;
+                for (i = 0; i < this.pyramidLevels - 2; i++) {
+                    factor += contrast[i] * F_freq[i] * F_mask[i] / sumContrast;
+                }
+                if (factor < 1) factor = 1;
+                if (factor > 10) factor = 10;
+
+                var delta = Math.abs(la.getValue(index, 0) - lb.getValue(index, 0));
+                error_sum += delta;
+
+                var pass = true;
+
+                // pure luminance test
+                if (delta > factor * metrics.tvi(adapt)) pass = false;
+
+                if (pass && !this.luminanceOnly) {
+                    // CIE delta E test with modifications
+                    var color_scale = this.colorFactor;
+                    // ramp down the color test in scotopic regions
+                    if (adapt < 10) {
+                        // Don't do color test at all.
+                        color_scale = 0;
+                    }
+                    var delta_e = ab[index] * color_scale;
+                    error_sum += delta_e;
+                    if (delta_e > factor) pass = false;
+                }
+
+                if (!pass) {
+                    diffPixel++;
+                    this.imageOutput.setAtIndex(index << 2, this.outputMaskRed, this.outputMaskGreen, this.outputMaskBlue, this.outputMaskAlpha);
+
+                } else {
+                    this.imageOutput.setAtIndex(index << 2, this.outputBackgroundRed, this.outputBackgroundGreen, this.outputBackgroundBlue, this.outputBackgroundAlpha);
+                }
             }
         }
 
         var self = this;
         var completion = function () {
-            if (self.isAboveThreshold(pixels_failed, dim)) {
+            if (self.isAboveThreshold(diffPixel, dim)) {
                 self.log("Images are visibly different");
-                self.log(pixels_failed + " pixels are different");
+                self.log(diffPixel + " pixels are different");
                 if (self.sumErrors) self.log(error_sum + " error sum");
                 fn(PerceptualDiff.RESULT_FAILED_DIFFERENT);
             } else {
                 self.log("Images are similar");
-                self.log(pixels_failed + " pixels are different");
+                self.log(diffPixel + " pixels are different");
                 fn(PerceptualDiff.RESULT_SIMILAR);
             }
         };
@@ -378,6 +391,6 @@ PerceptualDiff.prototype = {
     }
 };
 
-PerceptualDiff.version = "1.3.11";
+PerceptualDiff.version = "1.3.12";
 
 module.exports = PerceptualDiff;
