@@ -397,6 +397,6 @@ PerceptualDiff.prototype = {
     }
 };
 
-PerceptualDiff.version = "1.3.13";
+PerceptualDiff.version = "1.3.14";
 
 module.exports = PerceptualDiff;
