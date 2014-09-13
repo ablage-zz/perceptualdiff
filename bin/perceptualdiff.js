@@ -5,7 +5,7 @@
  9(4):33-40, 2004, Hector Yee
  Copyright (C) 2006-2011 Yangli Hector Yee
  Copyright (C) 2011-2014 Steven Myint
- Ported to Node: Marcel Erz
+ Copyright (C) 2014 Marcel Erz
 
  This program is free software; you can redistribute it and/or modify it under
  the terms of the GNU General Public License as published by the Free Software
@@ -23,6 +23,7 @@
 var PerceptualDiff = require('./../perceptualdiff.js');
 
 try {
+    printLicense();
 
     var options = parseArgs(process.argv.slice(1));
 
@@ -55,6 +56,16 @@ try {
 } catch (exception) {
     console.error(exception.message);
     process.exit(1);
+}
+
+function printLicense() {
+  console.log("Perceptualdiff version " + PerceptualDiff.version);
+  console.log("Copyright (C) 2006-2011 Yangli Hector Yee");
+  console.log("Copyright (C) 2011-2014 Steven Myint");
+  console.log("Copyright (C) 2014 Marcel Erz");
+  console.log("Perceptualdiff comes with ABSOLUTELY NO WARRANTY.");
+  console.log("This is free software, and you are welcome to redistribute it");
+  console.log("under certain conditions; for details see LICENSE.");
 }
 
 function printHelp() {
