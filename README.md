@@ -34,7 +34,7 @@ The command-line tool exposes a couple of flags and parameters for the compariso
 --luminance l       White luminance (default: 100.0 cdm^-2)
 --luminance-only    Only consider luminance; ignore chroma (color) in the comparison
 --color-factor      How much of color to use [0.0, 1.0] (default: 1.0)
---scale             Scale images to match each other's dimensions
+--scale             Scale images to match each others dimensions
 --sum-errors        Print a sum of the luminance and color differences
 --output o          Write difference to the file o
 --version           Print version
@@ -100,20 +100,23 @@ camelCasing instead of snake-casing. The class exposes additional parameters tha
 * ```imageThreshold``` Number of pixels/percent p below which differences are not generated (default: 50)
 * ```colorFactor``` How much of color to use [0.0, 1.0] (default: 1.0)
 * ```pyramidLevels``` Number of levels of Laplacian pyramids. (default: 3)
-* ```scale``` Scale images to match each other's dimensions (default: false)
+* ```scale``` Scale images to match each others dimensions (default: false)
 * ```outputMaskRed``` Red intensity for the difference highlighting in the output file (default: 255 - full red)
 * ```outputMaskGreen``` Green intensity for the difference highlighting in the output file (default: 0)
 * ```outputMaskBlue``` Blue intensity for the difference highlighting in the output file (default: 0)
-* ```outputMaskAlpha``` Alpha intensity for the difference highlighting in the output file (default: 180 - slightly transparent)
+* ```outputMaskAlpha``` Alpha intensity for the difference highlighting in the output file (default: 255)
+* ```outputMaskOpacity``` Opacity of the pixel for the difference highlighting in the output file (default: 0.7 - slightly transparent)
 * ```outputBackgroundRed``` Red intensity for the background in the output file (default: 0)
 * ```outputBackgroundGreen``` Green intensity for the background in the output file (default: 0)
 * ```outputBackgroundBlue``` Blue intensity for the background in the output file (default: 0)
 * ```outputBackgroundAlpha``` Alpha intensity for the background in the output file (default: 0 - transparent)
+* ```copyImageAToOutput``` Copies the first image to the output image before the comparison begins. This will make sure that the output image will highlight the differences on the first image.
+* ```copyImageBToOutput``` Copies the second image to the output image before the comparison begins. This will make sure that the output image will highlight the differences on the second image.
 
 
 ###Logging:
 
-By default, the class logs to the console.log, but you can overwrite this behavior by overwriting ```diff.log```:
+By default, the logger doesn't log events anywhere, but you can overwrite this behavior by overwriting ```PerceptualDiff.log```:
 
 ```JavaScript
 var diff = new PerceptualDiff({

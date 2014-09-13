@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /*
  PerceptualDiff - a program that compares two images using a perceptual metric
  based on the paper :
@@ -20,6 +21,7 @@
  this program; if not, write to the Free Software Foundation, Inc., 59 Temple
  Place, Suite 330, Boston, MA 02111-1307 USA
  */
+
 var PerceptualDiff = require('./../perceptualdiff.js');
 
 try {
@@ -84,7 +86,7 @@ function printHelp() {
     console.log("    --luminance l       White luminance (default: 100.0 cdm^-2)");
     console.log("    --luminance-only    Only consider luminance; ignore chroma (color) in the comparison");
     console.log("    --color-factor      How much of color to use [0.0, 1.0] (default: 1.0)");
-    console.log("    --scale             Scale images to match each other's dimensions");
+    console.log("    --scale             Scale images to match each others dimensions");
     console.log("    --sum-errors        Print a sum of the luminance and color differences");
     console.log("    --output o          Write difference to the file o");
     console.log("    --version           Print version");
@@ -112,7 +114,7 @@ function parseArgs (argv) {
     for (i = 1; i < argc; i++) {
         try {
             if (optionMatches(argv[i], "help")) {
-                print_help();
+                printHelp();
                 process.exit(0);
             }
             else if (optionMatches(argv[i], "fov")) {
@@ -193,7 +195,7 @@ function parseArgs (argv) {
                 }
             }
             else if (optionMatches(argv[i], "version")) {
-                console.log("perceptualdiff " + VERSION);
+                console.log("perceptualdiff " + PerceptualDiff.version);
             }
             else if (imageCount < 2) {
                 ++imageCount;

@@ -83,7 +83,7 @@ function PerceptualDiff (options) {
     this.copyImageAToOutput = options.copyImageAToOutput || false;
     this.copyImageBToOutput = options.copyImageBToOutput || false;
 
-    this.outputMaskOpacity = 0.7;
+    this.outputMaskOpacity = options.outputMaskOpacity || 0.7;
 
     this.quick = options.quick || false;
 }
@@ -397,6 +397,6 @@ PerceptualDiff.prototype = {
     }
 };
 
-PerceptualDiff.version = "1.3.14";
+PerceptualDiff.version = "1.3.15";
 
 module.exports = PerceptualDiff;
