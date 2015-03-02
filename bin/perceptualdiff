@@ -25,206 +25,183 @@
 var PerceptualDiff = require('./../index.js');
 
 try {
-    printLicense();
+	printLicense();
 
-    var options = parseArgs(process.argv.slice(1));
+	var options = parseArgs(process.argv.slice(1));
 
-    var diff = new PerceptualDiff(options);
+	var diff = new PerceptualDiff(options);
 
-    // Setup console logger
-    diff.log = function (text) {
-        console.log(text);
-    };
+	// Setup console logger
+	diff.log = function (text) {
+		console.log(text);
+	};
 
-    if (diff.verbose) {
-        console.log(diff.getInfo().join("\n"));
-    }
+	if (diff.verbose) {
+		console.log(diff.getInfo().join("\n"));
+	}
 
-    console.time('Time');
-    diff.run(function (err, result) {
+	console.time('Time');
+	diff.run(function (err, result) {
 
-        if (err) {
-            throw err;
-        }
+		if (err) {
+			throw err;
+		}
 
-        console.timeEnd('Time');
+		console.timeEnd('Time');
 
-        var passed = diff.isPassed(result);
+		var passed = diff.isPassed(result);
 
-        if (passed) {
-            if (diff.verbose) console.log("PASS");
-        }
-        else {
-            console.log("FAIL");
-        }
+		if (passed) {
+			if (diff.verbose) console.log("PASS");
+		} else {
+			console.log("FAIL");
+		}
 
-        process.exit(passed ? 0 : 1);
-    });
+		process.exit(passed ? 0 : 1);
+	});
 
 } catch (exception) {
-    console.error(exception.message);
-    process.exit(1);
+	console.error(exception.message);
+	process.exit(1);
 }
 
-function printLicense() {
-  console.log("Perceptualdiff version " + PerceptualDiff.version);
-  console.log("Copyright (C) 2006-2011 Yangli Hector Yee");
-  console.log("Copyright (C) 2011-2014 Steven Myint");
-  console.log("Copyright (C) 2014-2015 Marcel Erz");
-  console.log("Perceptualdiff comes with ABSOLUTELY NO WARRANTY.");
-  console.log("This is free software, and you are welcome to redistribute it");
-  console.log("under certain conditions; for details see LICENSE.");
+function printLicense () {
+	console.log("Perceptualdiff version " + PerceptualDiff.version);
+	console.log("Copyright (C) 2006-2011 Yangli Hector Yee");
+	console.log("Copyright (C) 2011-2014 Steven Myint");
+	console.log("Copyright (C) 2014-2015 Marcel Erz");
+	console.log("Perceptualdiff comes with ABSOLUTELY NO WARRANTY.");
+	console.log("This is free software, and you are welcome to redistribute it");
+	console.log("under certain conditions; for details see LICENSE.");
 }
 
-function printHelp() {
-    console.log("Usage: node peceptualdiff <image1> <image2>");
-    console.log("");
-    console.log("  Compares image1 and image2 using a perceptually based image metric.");
-    console.log("");
-    console.log("  Options:");
-    console.log("    --verbose           Turn on verbose mode");
-    console.log("    --fov deg           Field of view in degrees [0.1, 89.9] (default: 45.0)");
-    console.log("    --threshold p       Number of pixels/percent p below which differences are ignored");
-    console.log("    --threshold-image p Number of pixels/percent p below which differences are not generated (see --output)");
-    console.log("    --threshold-type p  'pixel' and 'percent' as type of threshold. (default: pixel)");
-    console.log("    --pyramid-levels p  Number of levels of Laplacian pyramids. (default: 3)");
-    console.log("    --gamma g           Value to convert rgb into linear space (default: 2.2)");
-    console.log("    --luminance l       White luminance (default: 100.0 cdm^-2)");
-    console.log("    --luminance-only    Only consider luminance; ignore chroma (color) in the comparison");
-    console.log("    --color-factor      How much of color to use [0.0, 1.0] (default: 1.0)");
-    console.log("    --scale             Scale images to match each others dimensions");
-    console.log("    --sum-errors        Print a sum of the luminance and color differences");
-    console.log("    --output o          Write difference to the file o");
-    console.log("    --version           Print version");
-    console.log("    --help              This help");
-    console.log("");
+function printHelp () {
+	console.log("Usage: node peceptualdiff <image1> <image2>");
+	console.log("");
+	console.log("  Compares image1 and image2 using a perceptually based image metric.");
+	console.log("");
+	console.log("  Options:");
+	console.log("    --verbose           Turn on verbose mode");
+	console.log("    --fov deg           Field of view in degrees [0.1, 89.9] (default: 45.0)");
+	console.log("    --threshold p       Number of pixels/percent p below which differences are ignored");
+	console.log("    --threshold-image p Number of pixels/percent p below which differences are not generated (see --output)");
+	console.log("    --threshold-type p  'pixel' and 'percent' as type of threshold. (default: pixel)");
+	console.log("    --pyramid-levels p  Number of levels of Laplacian pyramids. (default: 3)");
+	console.log("    --gamma g           Value to convert rgb into linear space (default: 2.2)");
+	console.log("    --luminance l       White luminance (default: 100.0 cdm^-2)");
+	console.log("    --luminance-only    Only consider luminance; ignore chroma (color) in the comparison");
+	console.log("    --color-factor      How much of color to use [0.0, 1.0] (default: 1.0)");
+	console.log("    --scale             Scale images to match each others dimensions");
+	console.log("    --sum-errors        Print a sum of the luminance and color differences");
+	console.log("    --output o          Write difference to the file o");
+	console.log("    --version           Print version");
+	console.log("    --help              This help");
+	console.log("");
 }
 
-function optionMatches(arg, optionName) {
-    return (arg == "--" + optionName) || (arg == "-" + optionName);
+function optionMatches (arg, optionName) {
+	return (arg == "--" + optionName) || (arg == "-" + optionName);
 }
 
 function parseArgs (argv) {
 
-    var i,
-      temporary,
-      imageCount = 0,
-      argc = argv.length,
-      options = {};
+	var i, temporary, imageCount = 0, argc = argv.length, options = {};
 
-    if (argc <= 1) {
-        printHelp();
-        process.exit(1);
-    }
+	if (argc <= 1) {
+		printHelp();
+		process.exit(1);
+	}
 
-    for (i = 1; i < argc; i++) {
-        try {
-            if (optionMatches(argv[i], "help")) {
-                printHelp();
-                process.exit(0);
-            }
-            else if (optionMatches(argv[i], "fov")) {
-                if (++i < argc) {
-                    options.fieldOfView = parseFloat(argv[i]);
-                }
-            }
-            else if (optionMatches(argv[i], "verbose")) {
-                options.verbose = true;
-            }
-            else if (optionMatches(argv[i], "threshold-type")) {
-                if (++i < argc) {
-                    if (argv[i] === 'pixel') {
-                        options.thresholdType = PerceptualDiff.THRESHOLD_PIXEL;
+	for (i = 1; i < argc; i++) {
+		try {
+			if (optionMatches(argv[i], "help")) {
+				printHelp();
+				process.exit(0);
+			} else if (optionMatches(argv[i], "fov")) {
+				if (++i < argc) {
+					options.fieldOfView = parseFloat(argv[i]);
+				}
+			} else if (optionMatches(argv[i], "verbose")) {
+				options.verbose = true;
+			} else if (optionMatches(argv[i], "threshold-type")) {
+				if (++i < argc) {
+					if (argv[i] === 'pixel') {
+						options.thresholdType = PerceptualDiff.THRESHOLD_PIXEL;
 
-                    } else if (argv[i] === 'percent') {
-                        options.thresholdType = PerceptualDiff.THRESHOLD_PERCENT;
+					} else if (argv[i] === 'percent') {
+						options.thresholdType = PerceptualDiff.THRESHOLD_PERCENT;
 
-                    } else {
-                        throw new Error("-threshold-type can be either 'pixel' or 'percent'");
-                    }
-                }
-            }
-            else if (optionMatches(argv[i], "threshold")) {
-                if (++i < argc) {
-                    temporary = parseFloat(argv[i]);
-                    if (temporary < 0) {
-                        throw new Error("-threshold must be positive");
-                    }
-                    options.threshold = temporary;
-                }
-            }
-            else if (optionMatches(argv[i], "threshold-image")) {
-                if (++i < argc) {
-                    temporary = parseFloat(argv[i]);
-                    if (temporary < 0) {
-                        throw new Error("-threshold-image must be positive");
-                    }
-                    options.imageThreshold = temporary;
-                }
-            }
-            else if (optionMatches(argv[i], "gamma")) {
-                if (++i < argc) {
-                    options.gamma = parseFloat(argv[i]);
-                }
-            }
-            else if (optionMatches(argv[i], "pyramid-levels")) {
-                if (++i < argc) {
-                    temporary = parseInt(argv[i], 10);
-                    if (temporary < 1) {
-                        throw new Error("-pyramid-levels must be greater or equal to 1");
-                    }
-                    options.pyramidLevels = temporary;
-                }
-            }
-            else if (optionMatches(argv[i], "luminance")) {
-                if (++i < argc) {
-                    options.luminance = parseFloat(argv[i]);
-                }
-            }
-            else if (optionMatches(argv[i], "luminance-only")) {
-                options.luminanceOnly = true;
-            }
-            else if (optionMatches(argv[i], "sum-errors")) {
-                options.sumErrors = true;
-            }
-            else if (optionMatches(argv[i], "color-factor")) {
-                if (++i < argc) {
-                    options.colorFactor = parseFloat(argv[i]);
-                }
-            }
-            else if (optionMatches(argv[i], "scale")) {
-                options.scale = true;
-            }
-            else if (optionMatches(argv[i], "output")) {
-                if (++i < argc) {
-                    options.imageOutputPath = argv[i];
-                }
-            }
-            else if (optionMatches(argv[i], "version")) {
-                console.log("perceptualdiff " + PerceptualDiff.version);
-            }
-            else if (imageCount < 2) {
-                ++imageCount;
-                if (imageCount == 1) {
-                    options.imageAPath = argv[i];
-                }
-                else {
-                    options.imageBPath = argv[i];
-                }
-            }
-            else {
-                console.log('Warning: option/file "' + argv[i] + '" ignored');
-            }
-        }
-        catch (exception) {
-            var reason = (exception.message !== '') ? "; " + exception.message : '';
-            throw new Error("Invalid argument (" + argv[i] + ") for " + argv[i - 1] + reason);
-        }
-    }
+					} else {
+						throw new Error("-threshold-type can be either 'pixel' or 'percent'");
+					}
+				}
+			} else if (optionMatches(argv[i], "threshold")) {
+				if (++i < argc) {
+					temporary = parseFloat(argv[i]);
+					if (temporary < 0) {
+						throw new Error("-threshold must be positive");
+					}
+					options.threshold = temporary;
+				}
+			} else if (optionMatches(argv[i], "threshold-image")) {
+				if (++i < argc) {
+					temporary = parseFloat(argv[i]);
+					if (temporary < 0) {
+						throw new Error("-threshold-image must be positive");
+					}
+					options.imageThreshold = temporary;
+				}
+			} else if (optionMatches(argv[i], "gamma")) {
+				if (++i < argc) {
+					options.gamma = parseFloat(argv[i]);
+				}
+			} else if (optionMatches(argv[i], "pyramid-levels")) {
+				if (++i < argc) {
+					temporary = parseInt(argv[i], 10);
+					if (temporary < 1) {
+						throw new Error("-pyramid-levels must be greater or equal to 1");
+					}
+					options.pyramidLevels = temporary;
+				}
+			} else if (optionMatches(argv[i], "luminance")) {
+				if (++i < argc) {
+					options.luminance = parseFloat(argv[i]);
+				}
+			} else if (optionMatches(argv[i], "luminance-only")) {
+				options.luminanceOnly = true;
+			} else if (optionMatches(argv[i], "sum-errors")) {
+				options.sumErrors = true;
+			} else if (optionMatches(argv[i], "color-factor")) {
+				if (++i < argc) {
+					options.colorFactor = parseFloat(argv[i]);
+				}
+			} else if (optionMatches(argv[i], "scale")) {
+				options.scale = true;
+			} else if (optionMatches(argv[i], "output")) {
+				if (++i < argc) {
+					options.imageOutputPath = argv[i];
+				}
+			} else if (optionMatches(argv[i], "version")) {
+				console.log("perceptualdiff " + PerceptualDiff.version);
+			} else if (imageCount < 2) {
+				++imageCount;
+				if (imageCount == 1) {
+					options.imageAPath = argv[i];
+				} else {
+					options.imageBPath = argv[i];
+				}
+			} else {
+				console.log('Warning: option/file "' + argv[i] + '" ignored');
+			}
+		} catch (exception) {
+			var reason = (exception.message !== '') ? "; " + exception.message : '';
+			throw new Error("Invalid argument (" + argv[i] + ") for " + argv[i - 1] + reason);
+		}
+	}
 
-    if (!options.imageAPath || !options.imageBPath) {
-        throw new Error("Not enough image files specified.");
-    }
+	if (!options.imageAPath || !options.imageBPath) {
+		throw new Error("Not enough image files specified.");
+	}
 
-    return options;
+	return options;
 }
