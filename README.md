@@ -76,7 +76,7 @@ var diff = new PerceptualDiff({
     threshold: 0.01,
     imageThreshold: 0.005,
 
-    outputPath: '...'
+    imageOutputPath: '...'
 });
 
 diff.run(function (passed) {
